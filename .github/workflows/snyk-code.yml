@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: snyk/actions/setup@master
       - name: Snyk Test
-        run: snyk code test --org=${{ secrets.SNYK_ORG }} --sarif > snyk-sarif2.json
+        run: snyk code test --org=70c42caa-d4ab-400b-92e2-0694aff64d96 --sarif > snyk-sarif2.json
         continue-on-error: true
         env:
            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
