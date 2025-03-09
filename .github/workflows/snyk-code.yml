@@ -16,6 +16,10 @@ jobs:
         continue-on-error: true
         env:
            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Monitor Code Issues in Snyk
+        run: snyk code monitor --org=70c42caa-d4ab-400b-92e2-0694aff64d96
+        env:
+         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Monitor Project in Snyk
         run: snyk monitor --org=70c42caa-d4ab-400b-92e2-0694aff64d96
         env:
