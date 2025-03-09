@@ -6,6 +6,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: snyk/actions/setup@master
+      - name: Authenticate Snyk
+        run: snyk auth $SNYK_TOKEN
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Test
         run: snyk code test --org=70c42caa-d4ab-400b-92e2-0694aff64d96 --sarif > snyk-sarif2.json
         continue-on-error: true
