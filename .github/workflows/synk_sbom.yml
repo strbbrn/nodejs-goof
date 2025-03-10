@@ -1,28 +1,29 @@
-name: "Snyk SBOM Generation"
+name: "Bomber SBOM Scan"
+
 on: [push, pull_request]
 
 jobs:
-  snyk-sbom:
+  sbom-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
+      - name: Install Bomber
+        run: |
+          wget https://github.com/devops-kung-fu/bomber/releases/download/v0.4.1/bomber_0.4.1_linux_amd64.deb
+          sudo dpkg -i bomber_0.4.1_linux_amd64.deb
 
-      - name: Authenticate Snyk
-        run: snyk auth $SNYK_TOKEN
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Generate SBOM
+        run: bomber generate -o mysbom.json
 
-      - name: Generate SBOM (CycloneDX)
-        run: snyk sbom --format=cyclonedx-json --output=snyk-sbom.json
+      - name: Scan SBOM with Snyk
+        run: bomber scan --provider snyk --token $SNYK_TOKEN mysbom.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: snyk-sbom
-          path: snyk-sbom.json
+          name: sbom-bomber
+          path: mysbom.json
