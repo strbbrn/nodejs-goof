@@ -32,7 +32,10 @@ jobs:
         run: ls -l mysbom.json
           
       - name: Scan SBOM with Snyk (via Bomber)
-        run: bomber scan --provider snyk --token $SNYK_TOKEN mysbom.json
+        run: |
+          snyk auth $SNYK_TOKEN
+          
+          bomber scan --provider snyk --token $SNYK_TOKEN mysbom.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
