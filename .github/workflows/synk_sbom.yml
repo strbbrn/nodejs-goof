@@ -17,16 +17,20 @@ jobs:
           wget https://github.com/devops-kung-fu/bomber/releases/download/v0.4.1/bomber_0.4.1_linux_amd64.deb
           sudo dpkg -i bomber_0.4.1_linux_amd64.deb
 
-      - name: Generate SBOM (CycloneDX)
-        run: npx cyclonedx-bom -o mysbom.json
-
-      - name: Scan SBOM with Snyk (via Bomber)
-        run: bomber scan --provider snyk --token $SNYK_TOKEN mysbom.json
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Create SBOM with CycloneDX
+        uses: CycloneDX/gh-node-module-generatebom@v1
+        with: 
+          output: './mysbom.json'
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom-bomber
           path: mysbom.json
+          
+      - name: Scan SBOM with Snyk (via Bomber)
+        run: bomber scan --provider snyk --token $SNYK_TOKEN mysbom.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      
