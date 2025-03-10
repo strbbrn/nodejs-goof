@@ -1,0 +1,28 @@
+name: "Snyk SBOM Generation"
+on: [push, pull_request]
+
+jobs:
+  snyk-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth $SNYK_TOKEN
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Generate SBOM (CycloneDX)
+        run: snyk sbom --format=cyclonedx-json --output=snyk-sbom.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload SBOM as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-sbom
+          path: snyk-sbom.json
