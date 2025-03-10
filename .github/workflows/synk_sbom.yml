@@ -30,6 +30,8 @@ jobs:
 
       - name: Verify SBOM File
         run: ls -l mysbom.json
+
+      - uses: snyk/actions/setup@master
           
       - name: Scan SBOM with Snyk (via Bomber)
         run: |
