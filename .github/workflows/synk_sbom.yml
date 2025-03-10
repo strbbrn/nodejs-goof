@@ -9,8 +9,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install CycloneDX (SBOM Generator)
-        run: npm install -g @cyclonedx/bom
+      - name: Install Node packages
+        run: npm install 
 
       - name: Install Bomber
         run: |
