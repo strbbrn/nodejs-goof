@@ -17,10 +17,15 @@ jobs:
           wget https://github.com/devops-kung-fu/bomber/releases/download/v0.5.1/bomber_0.5.1_linux_amd64.deb
           sudo dpkg -i bomber_0.5.1_linux_amd64.deb
           
+      # - name: Create SBOM with CycloneDX
+      #   uses: CycloneDX/gh-node-module-generatebom@v1
+      #   with: 
+      #     output: './mysbom.json'
       - name: Create SBOM with CycloneDX
-        uses: CycloneDX/gh-node-module-generatebom@v1
-        with: 
-          output: './mysbom.json'
+        run: |
+          npm install -g snyk
+          snyk auth ${{ secrets.SNYK_TOKEN }}
+          snyk sbom --format=cyclonedx1.4+json --json-file-output=mysbom.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
@@ -31,7 +36,7 @@ jobs:
       - name: Verify SBOM File
         run: ls -l mysbom.json
 
-      - uses: snyk/actions/setup@master
+      # - uses: snyk/actions/setup@master
           
       - name: Scan SBOM with Snyk (via Bomber)
         run: |
