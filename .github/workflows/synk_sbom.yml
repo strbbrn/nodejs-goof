@@ -35,10 +35,6 @@ jobs:
           
       - name: Scan SBOM with Snyk (via Bomber)
         run: |
-          snyk auth $SNYK_TOKEN
-          
-          bomber scan mysbom.json
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          bomber scan --provider snyk --token ${{ secrets.SNYK_TOKEN }} mysbom.json
 
       
