@@ -25,7 +25,7 @@ jobs:
         run: |
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk sbom --format=cyclonedx1.4+json --json-file-output=mysbom.json
+          snyk sbom --format=cyclonedx-json --output=mysbom.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
