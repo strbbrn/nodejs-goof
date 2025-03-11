@@ -40,6 +40,6 @@ jobs:
           
       - name: Scan SBOM with Snyk (via Bomber)
         run: |
-          export SYNK_API=https://api.eu.snyk.io
+          export SNYK_API=https://api.eu.snyk.io
           bomber scan --provider snyk --token ${{ secrets.SNYK_TOKEN }} mysbom.json
             
