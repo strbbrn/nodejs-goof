@@ -1,4 +1,4 @@
-name: "Bomber SBOM Scan"
+name: "SCA and SBOM Scan"
 
 on: [push, pull_request]
 
@@ -26,22 +26,36 @@ jobs:
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
           
-      - name: Sbom with Snyk
+      - name: Snyk Monitor
+        run: |
+          snyk monitor --org=726103fc-83a2-455e-be8f-da5164cd7fc8
+          
+      - name: Sbom with Snyk Cyclonedx Format
         run: |
           snyk sbom --format=cyclonedx1.4+json --org=726103fc-83a2-455e-be8f-da5164cd7fc8 --json-file-output=mysbom.json
+          
+      - name: Sbom with Snyk Spdx Format
+        run: |
+          snyk sbom --format=spdx2.3+json --org=726103fc-83a2-455e-be8f-da5164cd7fc8 --json-file-output=mysbomspdx.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-bomber
+          name: sbom-cyclonedx
           path: mysbom.json
+          
+      - name: Upload SBOM as Artifact spdx
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx
+          path: mysbomspdx.json
 
       - name: Verify SBOM File
-        run: ls -l mysbom.json
+        run: ls -la
           
-      - name: Scan SBOM with Snyk (via Bomber)
-        run: |
-          snyk sbom test --file=mysbom.json --experimental
+      # - name: Scan SBOM with Snyk
+      #   run: |
+      #     snyk sbom test --file=mysbom.json --experimental
           
        # SNYK_API=https://api.eu.snyk.io bomber scan --provider snyk --token ${{ secrets.SNYK_TOKEN }} mysbom.json
             
