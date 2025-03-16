@@ -18,16 +18,11 @@ jobs:
 
       - name: Install Node.js dependencies
         uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '14'
+  
       - run: npm install
 
-      - name: Generate SBOM using Anchore SBOM Action
-        uses: anchore/sbom-action@v0.15.11
-        with:
-          path: .
-          format: syft-json
-          output-file: ./sbom_syft.json
+      - name: Anchore SBOM Action
+        uses: anchore/sbom-action@v0.16.0
 
       # - name: Upload SBOM artifact
       #   uses: actions/upload-artifact@v4.6.1
