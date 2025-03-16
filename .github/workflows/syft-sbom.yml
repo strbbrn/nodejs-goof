@@ -21,9 +21,13 @@ jobs:
   
       - run: npm install
 
-      - name: Anchore SBOM Action
-        uses: anchore/sbom-action@v0.16.0
-
+      - name: Syft CLI Install
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: SBOM generation
+        run: |  
+          syft . -o syft-json
+          ls -la
       # - name: Upload SBOM artifact
       #   uses: actions/upload-artifact@v4.6.1
       #   with:
