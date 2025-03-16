@@ -1,0 +1,37 @@
+name: Generate Syft SBOM
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js dependencies
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '14'
+      - run: npm install
+
+      - name: Generate SBOM using Anchore SBOM Action
+        uses: anchore/sbom-action@v0.15.11
+        with:
+          path: .
+          format: syft-json
+          artifact-name: sbom.syft.json
+          output-file: ./sbom.syft.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-syft-json
+          path: ./sbom.syft.json
