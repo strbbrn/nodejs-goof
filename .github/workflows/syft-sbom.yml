@@ -24,12 +24,14 @@ jobs:
       - name: Syft CLI Install
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          
       - name: SBOM generation
         run: |  
-          syft . -o syft-json
+          syft . -o syft-json > sbom_syft.json
           ls -la
-      # - name: Upload SBOM artifact
-      #   uses: actions/upload-artifact@v4.6.1
-      #   with:
-      #     name: sbom_syft_json
-      #     path: ./sbom_syft.json
+          
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: sbom_syft_json
+          path: ./sbom_syft.json
