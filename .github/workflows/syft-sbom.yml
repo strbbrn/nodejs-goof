@@ -1,0 +1,37 @@
+name: Generate Syft SBOM
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js dependencies
+        uses: actions/setup-node@v4.2.0
+  
+      - run: npm install
+
+      - name: Syft CLI Install
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          
+      - name: SBOM generation
+        run: |  
+          syft . -o spdx-json > sbom_syft.json
+          ls -la
+          
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: sbom_syft_json
+          path: ./sbom_syft.json
