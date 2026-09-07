@@ -56,18 +56,39 @@ function adminLoginSuccess(redirectPage, session, username, res) {
   // Log the login action for audit
   console.log(`User logged in: ${username}`)
 
-  if (redirectPage) {
-      return res.redirect(redirectPage)
+  const safeRedirectPage = sanitizeRedirectPage(redirectPage)
+  if (safeRedirectPage) {
+      return res.redirect(safeRedirectPage)
   } else {
       return res.redirect('/admin')
   }
+}
+
+function sanitizeRedirectPage(redirectPage) {
+  if (typeof redirectPage !== 'string' || redirectPage.length === 0) {
+    return ''
+  }
+
+  if (redirectPage[0] !== '/') {
+    return ''
+  }
+
+  if (redirectPage.length > 1 && (redirectPage[1] === '/' || redirectPage[1] === '\\')) {
+    return ''
+  }
+
+  if (/[\x00-\x1F\x7F]/.test(redirectPage)) {
+    return ''
+  }
+
+  return redirectPage
 }
 
 exports.login = function (req, res, next) {
   return res.render('admin', {
     title: 'Admin Access',
     granted: false,
-    redirectPage: req.query.redirectPage
+    redirectPage: sanitizeRedirectPage(req.query.redirectPage)
   });
 };
 
