@@ -49,7 +49,7 @@ function installRouteStubs(execCalls) {
         isEmail: function () { return true; },
         isMobilePhone: function () { return true; },
         isAscii: function () { return true; },
-        rtrim: function (value) { return value; },
+        rtrim: function (value) { return String(value).replace(/\s+$/, ''); },
       };
     }
     if (request === 'file-type') {
@@ -140,6 +140,45 @@ test('create keeps existing reminder parsing for non-image todos', function () {
     assert.strictEqual(res.statusCode, 302);
     assert.strictEqual(res.headers.Location, '/');
     assert.strictEqual(Buffer.from(res.body, 'base64').toString(), 'call mom [5m]');
+  } finally {
+    loaded.restore();
+  }
+});
+
+test('save_account_details does not pass request-controlled render options to hbs', function () {
+  const execCalls = [];
+  const loaded = loadRoutesWithStubs(execCalls);
+  const res = {
+    render: function (view, options) {
+      this.view = view;
+      this.options = options;
+      return this;
+    },
+  };
+
+  try {
+    loaded.routes.save_account_details({
+      body: {
+        firstname: 'Alice   ',
+        lastname: 'Admin   ',
+        country: 'IL',
+        phone: '+972551234123',
+        email: 'alice@example.com',
+        layout: './../package.json',
+      },
+    }, res, function (err) {
+      throw err;
+    });
+
+    assert.strictEqual(res.view, 'account.hbs');
+    assert.deepStrictEqual(res.options, {
+      firstname: 'Alice',
+      lastname: 'Admin',
+      country: 'IL',
+      phone: '+972551234123',
+      email: 'alice@example.com',
+    });
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(res.options, 'layout'), false);
   } finally {
     loaded.restore();
   }
