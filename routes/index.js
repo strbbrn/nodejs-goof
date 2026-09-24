@@ -9,6 +9,7 @@ var streamBuffers = require('stream-buffers');
 var readline = require('readline');
 var moment = require('moment');
 var validator = require('validator');
+var path = require('path');
 
 // zip-slip
 var fileType = require('file-type');
@@ -270,15 +271,23 @@ exports.import = function (req, res, next) {
     importedFileType = { ext: "txt", mime: "text/plain" };
   }
   if (importedFileType["mime"] === zipFileExt["mime"]) {
-    var zip = AdmZip(importFile.data);
-    var extracted_path = "/tmp/extracted_files";
-    zip.extractAllTo(extracted_path, true);
-    data = "No backup.txt file found";
-    fs.readFile('backup.txt', 'ascii', function (err, data) {
-      if (!err) {
-        data = data;
+    var extracted_path;
+    try {
+      var zip = AdmZip(importFile.data);
+      extracted_path = utils.safeExtractZip(zip);
+      data = "No backup.txt file found";
+
+      var backupPath = path.join(extracted_path, 'backup.txt');
+      if (fs.existsSync(backupPath)) {
+        data = fs.readFileSync(backupPath, 'ascii');
       }
-    });
+    } catch (err) {
+      return res.status(400).send('Invalid zip archive.');
+    } finally {
+      if (extracted_path && fs.rmSync) {
+        fs.rmSync(extracted_path, { recursive: true, force: true });
+      }
+    }
   } else {
     data = importFile.data.toString('ascii');
   }

@@ -12,10 +12,11 @@
     "start": "NODE_OPTIONS=--openssl-legacy-provider node app.js",
     "build": "browserify -r jquery > public/js/bundle.js",
     "cleanup": "mongo express-todo --eval 'db.todos.remove({});'",
+    "test:zip-import": "node --test tests/zip-import-validation.spec.js",
     "test": "snyk test"
   },
   "dependencies": {
-    "adm-zip": "0.4.7",
+    "adm-zip": "0.6.0",
     "body-parser": "1.9.0",
     "cfenv": "^1.0.4",
     "consolidate": "0.14.5",
