@@ -1,4 +1,5 @@
 var utils = require('../utils');
+var securityHelpers = require('../security-helpers');
 var mongoose = require('mongoose');
 var Todo = mongoose.model('Todo');
 var User = mongoose.model('User');
@@ -8,13 +9,11 @@ var ms = require('ms');
 var streamBuffers = require('stream-buffers');
 var readline = require('readline');
 var moment = require('moment');
-var exec = require('child_process').exec;
 var validator = require('validator');
 
 // zip-slip
 var fileType = require('file-type');
 var AdmZip = require('adm-zip');
-var fs = require('fs');
 
 // prototype-pollution
 var _ = require('lodash');
@@ -53,12 +52,13 @@ exports.loginHandler = function (req, res, next) {
 
 function adminLoginSuccess(redirectPage, session, username, res) {
   session.loggedIn = 1
+  const sanitizedRedirectPage = securityHelpers.sanitizeRedirectPage(redirectPage)
 
   // Log the login action for audit
   console.log(`User logged in: ${username}`)
 
-  if (redirectPage) {
-      return res.redirect(redirectPage)
+  if (sanitizedRedirectPage) {
+      return res.redirect(sanitizedRedirectPage)
   } else {
       return res.redirect('/admin')
   }
@@ -68,7 +68,7 @@ exports.login = function (req, res, next) {
   return res.render('admin', {
     title: 'Admin Access',
     granted: false,
-    redirectPage: req.query.redirectPage
+    redirectPage: securityHelpers.sanitizeRedirectPage(req.query.redirectPage)
   });
 };
 
@@ -82,13 +82,12 @@ exports.admin = function (req, res, next) {
 exports.get_account_details = function(req, res, next) {
   // @TODO need to add a database call to get the profile from the database
   // and provide it to the view to display
-  const profile = {}
- 	return res.render('account.hbs', profile)
+  return res.render('account.hbs', {})
 }
 
 exports.save_account_details = function(req, res, next) {
   // get the profile details from the JSON
-	const profile = req.body
+	const profile = securityHelpers.buildAccountProfile(req.body)
   // validate the input
   if (validator.isEmail(profile.email, { allow_display_name: true })
     // allow_display_name allows us to receive input as:
@@ -104,7 +103,7 @@ exports.save_account_details = function(req, res, next) {
     profile.lastname = validator.rtrim(profile.lastname)
 
     // render the view
-    return res.render('account.hbs', profile)
+    return res.render('account.hbs', securityHelpers.buildAccountProfile(profile))
   } else {
     // if input validation fails, we just render the view as is
     console.log('error in form details')
@@ -157,13 +156,6 @@ exports.create = function (req, res, next) {
   if (typeof (item) == 'string' && item.match(imgRegex)) {
     var url = item.match(imgRegex)[1];
     console.log('found img: ' + url);
-
-    exec('identify ' + url, function (err, stdout, stderr) {
-      console.log(err);
-      if (err !== null) {
-        console.log('Error (' + err + '):' + stderr);
-      }
-    });
 
   } else {
     item = parse(item);
@@ -253,14 +245,11 @@ exports.import = function (req, res, next) {
   }
   if (importedFileType["mime"] === zipFileExt["mime"]) {
     var zip = AdmZip(importFile.data);
-    var extracted_path = "/tmp/extracted_files";
-    zip.extractAllTo(extracted_path, true);
-    data = "No backup.txt file found";
-    fs.readFile('backup.txt', 'ascii', function (err, data) {
-      if (!err) {
-        data = data;
-      }
-    });
+    try {
+      data = securityHelpers.readBackupFromZip(zip);
+    } catch (err) {
+      return res.status(400).send('Invalid zip file');
+    }
   } else {
     data = importFile.data.toString('ascii');
   }
@@ -297,11 +286,13 @@ exports.import = function (req, res, next) {
 
 exports.about_new = function (req, res, next) {
   console.log(JSON.stringify(req.query));
+  var device = securityHelpers.normalizeAboutDevice(req.query.device);
   return res.render("about_new.dust",
     {
       title: 'Patch TODO List',
       subhead: 'Vulnerabilities at their best',
-      device: req.query.device
+      device: device,
+      isDesktop: device === 'Desktop'
     });
 };
 
